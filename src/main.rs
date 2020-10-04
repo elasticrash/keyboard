@@ -42,6 +42,7 @@ fn main() {
 
                 let mut rects = canvas.rects();
                 let mut sprites = canvas.sprites();
+                let mut lines = canvas.lines(1.3);
 
                 let mut row = 1;
                 let mut pos_y = 50.;
@@ -53,12 +54,7 @@ fn main() {
                     let mut point = 1.0;
                     let mut pos_x = 50.;
                     for y in x {
-                        rects.add([
-                            pos_x + (point * u1_size) as f32,
-                            pos_x + (point * u1_size + (y.size * u1_size)) as f32,
-                            pos_y + ((row as f32) * u1_size) as f32,
-                            pos_y + ((row as f32) * u1_size + u1_size) as f32,
-                        ]);
+                        rects.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size));
                         add_ascii(
                             [
                                 pos_x + (point * u1_size) + u1_size / 3. as f32,
@@ -80,6 +76,37 @@ fn main() {
                         .draw();
                     rects = canvas.rects();
                 }
+
+                row += 3;
+                pos_y = 500.;
+
+                let mut pos_x = 50.;
+                lines.add([pos_x, pos_y], [pos_x + 8., pos_y]);
+                lines.add([pos_x + 8., pos_y], [pos_x + 8., pos_y - 10.]);
+                lines.add([pos_x + 8., pos_y - 10.], [pos_x + 148., pos_y - 10.]);
+                lines.add([pos_x + 148., pos_y - 10.], [pos_x + 148., pos_y]);
+                lines.add([pos_x + 148., pos_y], [pos_x + 156., pos_y]);
+                lines.add([pos_x + 156., pos_y], [pos_x + 156., pos_y + 31.]);
+                lines.add([pos_x + 156., pos_y + 31.], [pos_x + 148., pos_y + 31.]);
+                lines.add([pos_x + 148., pos_y + 31.], [pos_x + 148., pos_y + 89.]);
+                lines.add([pos_x + 148., pos_y + 89.], [pos_x + 156., pos_y + 89.]);
+                lines.add([pos_x + 156., pos_y + 89.], [pos_x + 156., pos_y + 120.]);
+                lines.add([pos_x + 156., pos_y + 120.], [pos_x + 148., pos_y + 120.]);
+                lines.add([pos_x + 148., pos_y + 120.], [pos_x + 148., pos_y + 130.]);
+                lines.add([pos_x + 148., pos_y + 130.], [pos_x + 8., pos_y + 130.]);
+                lines.add([pos_x + 8., pos_y + 130.], [pos_x + 8., pos_y + 120.]);
+                lines.add([pos_x + 8., pos_y + 120.], [pos_x, pos_y + 120.]);
+                lines.add([pos_x, pos_y + 120.], [pos_x, pos_y + 89.]);
+                lines.add([pos_x, pos_y + 89.], [pos_x + 8., pos_y + 89.]);
+                lines.add([pos_x + 8., pos_y + 89.], [pos_x + 8., pos_y + 31.]);
+                lines.add([pos_x + 8., pos_y + 31.], [pos_x, pos_y + 31.]);
+                lines.add([pos_x, pos_y + 31.], [pos_x, pos_y]);
+
+                lines
+                    .send_and_uniforms(canvas)
+                    .with_color([ff * row as f32, 0.6, 0.4, 1.0])
+                    .draw();
+                lines = canvas.lines(1.3);
 
                 sprites.send_and_uniforms(canvas, &ascii_tex, 10.0).draw();
 
@@ -105,4 +132,13 @@ fn add_ascii(
         sprites.add(cc, (ascii - 32) as u16, rotation);
         cc[0] += width;
     }
+}
+
+fn rectangle(x: f32, y: f32, s: f32, r: i32, p: f32, key: f32) -> [f32; 4] {
+    return [
+        x + (p * s) as f32,
+        x + (p * s + (key * s)) as f32,
+        y + ((r as f32) * s) as f32,
+        y + ((r as f32) * s + s) as f32,
+    ];
 }
