@@ -3,6 +3,7 @@ use egaku2d::glutin::event::{Event, VirtualKeyCode, WindowEvent};
 use egaku2d::glutin::event_loop::ControlFlow;
 mod config;
 use std::env;
+use std::iter::Repeat;
 
 fn main() {
     let events_loop = egaku2d::glutin::event_loop::EventLoop::new();
@@ -78,29 +79,22 @@ fn main() {
                 }
 
                 row += 3;
-                pos_y = 500.;
+                pos_y = 1500.;
 
-                let mut pos_x = 50.;
-                lines.add([pos_x, pos_y], [pos_x + 8., pos_y]);
-                lines.add([pos_x + 8., pos_y], [pos_x + 8., pos_y - 10.]);
-                lines.add([pos_x + 8., pos_y - 10.], [pos_x + 148., pos_y - 10.]);
-                lines.add([pos_x + 148., pos_y - 10.], [pos_x + 148., pos_y]);
-                lines.add([pos_x + 148., pos_y], [pos_x + 156., pos_y]);
-                lines.add([pos_x + 156., pos_y], [pos_x + 156., pos_y + 31.]);
-                lines.add([pos_x + 156., pos_y + 31.], [pos_x + 148., pos_y + 31.]);
-                lines.add([pos_x + 148., pos_y + 31.], [pos_x + 148., pos_y + 89.]);
-                lines.add([pos_x + 148., pos_y + 89.], [pos_x + 156., pos_y + 89.]);
-                lines.add([pos_x + 156., pos_y + 89.], [pos_x + 156., pos_y + 120.]);
-                lines.add([pos_x + 156., pos_y + 120.], [pos_x + 148., pos_y + 120.]);
-                lines.add([pos_x + 148., pos_y + 120.], [pos_x + 148., pos_y + 130.]);
-                lines.add([pos_x + 148., pos_y + 130.], [pos_x + 8., pos_y + 130.]);
-                lines.add([pos_x + 8., pos_y + 130.], [pos_x + 8., pos_y + 120.]);
-                lines.add([pos_x + 8., pos_y + 120.], [pos_x, pos_y + 120.]);
-                lines.add([pos_x, pos_y + 120.], [pos_x, pos_y + 89.]);
-                lines.add([pos_x, pos_y + 89.], [pos_x + 8., pos_y + 89.]);
-                lines.add([pos_x + 8., pos_y + 89.], [pos_x + 8., pos_y + 31.]);
-                lines.add([pos_x + 8., pos_y + 31.], [pos_x, pos_y + 31.]);
-                lines.add([pos_x, pos_y + 31.], [pos_x, pos_y]);
+                for x in &keyboard.layout {
+                    let mut pos_x = 150.;
+                    for y in x {
+                        let switch = switch_slot(pos_x, pos_y);
+                        for swln_index in 0..switch.len() {
+                            lines.add(
+                                transform(switch[swln_index][0]),
+                                transform(switch[swln_index][1]),
+                            );
+                        }
+                        pos_x += 190.5;
+                    }
+                    pos_y += 190.5;
+                }
 
                 lines
                     .send_and_uniforms(canvas)
@@ -141,4 +135,33 @@ fn rectangle(x: f32, y: f32, s: f32, r: i32, p: f32, key: f32) -> [f32; 4] {
         y + ((r as f32) * s) as f32,
         y + ((r as f32) * s + s) as f32,
     ];
+}
+
+fn switch_slot(x: f32, y: f32) -> [[[f32; 2]; 2]; 20] {
+    return [
+        [[x, y], [x + 8., y]],
+        [[x + 8., y], [x + 8., y - 10.]],
+        [[x + 8., y - 10.], [x + 148., y - 10.]],
+        [[x + 148., y - 10.], [x + 148., y]],
+        [[x + 148., y], [x + 156., y]],
+        [[x + 156., y], [x + 156., y + 31.]],
+        [[x + 156., y + 31.], [x + 148., y + 31.]],
+        [[x + 148., y + 31.], [x + 148., y + 89.]],
+        [[x + 148., y + 89.], [x + 156., y + 89.]],
+        [[x + 156., y + 89.], [x + 156., y + 120.]],
+        [[x + 156., y + 120.], [x + 148., y + 120.]],
+        [[x + 148., y + 120.], [x + 148., y + 130.]],
+        [[x + 148., y + 130.], [x + 8., y + 130.]],
+        [[x + 8., y + 130.], [x + 8., y + 120.]],
+        [[x + 8., y + 120.], [x, y + 120.]],
+        [[x, y + 120.], [x, y + 89.]],
+        [[x, y + 89.], [x + 8., y + 89.]],
+        [[x + 8., y + 89.], [x + 8., y + 31.]],
+        [[x + 8., y + 31.], [x, y + 31.]],
+        [[x, y + 31.], [x, y]],
+    ];
+}
+
+fn transform(n: [f32; 2]) -> [f32; 2] {
+    return [n[0] / 3., n[1] / 3.];
 }
