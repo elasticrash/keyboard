@@ -7,7 +7,7 @@ use std::iter::Repeat;
 
 fn main() {
     let events_loop = egaku2d::glutin::event_loop::EventLoop::new();
-    let mut sys = egaku2d::WindowedSystem::new([1200, 1000], &events_loop, "keyboard tester");
+    let mut sys = egaku2d::WindowedSystem::new([1200, 1000], &events_loop, "keyboard designer");
     let args: Vec<String> = env::args().collect();
     let file: &str = args[1].as_ref();
     let ascii_tex = sys.texture("ascii.png", [16, 14]).unwrap();
@@ -46,9 +46,9 @@ fn main() {
                 let mut lines = canvas.lines(1.3);
 
                 let mut row = 1;
-                let mut pos_y = 50.;
-                let u1_size = 50.;
-                let gap = 65.;
+                let mut pos_y = 150.;
+                let u1_size = 190.;
+                let gap = 0.5;
                 let ff = 0.1;
 
                 for x in &keyboard.layout {
@@ -58,8 +58,8 @@ fn main() {
                         rects.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size));
                         add_ascii(
                             [
-                                pos_x + (point * u1_size) + u1_size / 3. as f32,
-                                pos_y + ((row as f32) * u1_size) + u1_size / 3. as f32,
+                                transform_single(pos_x + (point * u1_size) + u1_size / 3. as f32),
+                                transform_single(pos_y + ((row as f32) * u1_size) + u1_size / 3. as f32),
                             ],
                             10.0,
                             0.0,
@@ -79,10 +79,31 @@ fn main() {
                 }
 
                 row += 3;
+                pos_y = 1400.;
+
+                let mut pos_x = 10.;
+
+                // frame
+                lines.add(
+                    transform([0.0 + pos_x, 0.0 + pos_y]),
+                    transform([3200.0 + pos_x, 0.0 + pos_y]),
+                );
+                lines.add(
+                    transform([3200.0 + pos_x, 0.0 + pos_y]),
+                    transform([3200.0 + pos_x, 1100.0 + pos_y]),
+                );
+                lines.add(
+                    transform([3200.0 + pos_x, 1100.0 + pos_y]),
+                    transform([0.0 + pos_x, 1100.0 + pos_y]),
+                );
+                lines.add(
+                    transform([0.0 + pos_x, 1100.0 + pos_y]),
+                    transform([0.0 + pos_x, 0.0 + pos_y]),
+                );
                 pos_y = 1500.;
 
                 for x in &keyboard.layout {
-                    let mut pos_x = 150.;
+                    pos_x = 150.;
                     for y in x {
                         let switch = switch_slot(pos_x, pos_y);
                         for swln_index in 0..switch.len() {
@@ -130,10 +151,10 @@ fn add_ascii(
 
 fn rectangle(x: f32, y: f32, s: f32, r: i32, p: f32, key: f32) -> [f32; 4] {
     return [
-        x + (p * s) as f32,
-        x + (p * s + (key * s)) as f32,
-        y + ((r as f32) * s) as f32,
-        y + ((r as f32) * s + s) as f32,
+        transform_single(x + (p * s) as f32),
+        transform_single(x + (p * s + (key * s)) as f32),
+        transform_single(y + ((r as f32) * s) as f32),
+        transform_single(y + ((r as f32) * s + s) as f32),
     ];
 }
 
@@ -163,5 +184,9 @@ fn switch_slot(x: f32, y: f32) -> [[[f32; 2]; 2]; 20] {
 }
 
 fn transform(n: [f32; 2]) -> [f32; 2] {
-    return [n[0] / 3., n[1] / 3.];
+    [n[0] / 3., n[1] / 3.]
+}
+
+fn transform_single(n: f32) -> f32 {
+    n / 3.
 }
