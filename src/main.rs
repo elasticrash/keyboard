@@ -52,6 +52,7 @@ fn main() {
                 let u1_size = 190.;
                 let gap = 0.5;
                 let ff = 0.1;
+                let mut base_width = 0.0;
 
                 for x in &keyboard.layout {
                     let mut point = 1.0;
@@ -74,6 +75,10 @@ fn main() {
                         );
                         point += y.size;
                         pos_x += gap;
+
+                        if row == 1 {
+                            base_width = base_width + u1_size * y.size;
+                        }
                     }
                     pos_y += 0.5;
                     row += 1;
@@ -89,26 +94,25 @@ fn main() {
                     rects = canvas.rects();
                 }
 
-                row += 3;
                 pos_y = 1400.;
-
+                base_width += 200.;
                 let mut pos_x = 150.;
 
                 // frame
                 lines.add(
                     transform([0.0 + pos_x, 0.0 + pos_y], 0.),
-                    transform([3000.0 + pos_x, 0.0 + pos_y], 0.),
+                    transform([base_width + pos_x, 0.0 + pos_y], 0.),
                 );
                 lines.add(
-                    transform([3000.0 + pos_x, 0.0 + pos_y], 0.),
-                    transform([3000.0 + pos_x, 1100.0 + pos_y], 0.),
+                    transform([base_width + pos_x, 0.0 + pos_y], 0.),
+                    transform([base_width + pos_x, (row * 190) as f32 + pos_y], 0.),
                 );
                 lines.add(
-                    transform([3000.0 + pos_x, 1100.0 + pos_y], 0.),
-                    transform([0.0 + pos_x, 1100.0 + pos_y], 0.),
+                    transform([base_width + pos_x, (row * 190) as f32 + pos_y], 0.),
+                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y], 0.),
                 );
                 lines.add(
-                    transform([0.0 + pos_x, 1100.0 + pos_y], 0.),
+                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y], 0.),
                     transform([0.0 + pos_x, 0.0 + pos_y], 0.),
                 );
                 pos_y = 1500.;
