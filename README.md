@@ -4,4 +4,4 @@ How to run
 
 cargo run {keyboard}
 
-i.e cargo run poker
+i.e cargo run generic60
