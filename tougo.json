@@ -58,19 +58,19 @@
             },
             {
                 "size": 1,
-                "char": "DEL",
+                "char": "{",
                 "k_type": 1
             },
             {
                 "size": 1,
-                "char": "BCKSP",
+                "char": "}",
                 "k_type": 1
             }
         ],
         [
             {
                 "size": 1,
-                "char": "fn1",
+                "char": "SHIFT",
                 "k_type": 1
             },
             {
@@ -130,14 +130,14 @@
             },
             {
                 "size": 1,
-                "char": "ENTER",
+                "char": "TAB",
                 "k_type": 1
             }
         ],
         [
             {
                 "size": 1,
-                "char": "SHIFT",
+                "char": "CTRL",
                 "k_type": 1
             },
             {
@@ -192,12 +192,12 @@
             },
             {
                 "size": 1,
-                "char": "|",
+                "char": "ALT",
                 "k_type": 1
             },
             {
                 "size": 1,
-                "char": "SHIFT",
+                "char": "DEL",
                 "k_type": 1
             }
         ],
@@ -219,7 +219,7 @@
             },
             {
                 "size": 2.75,
-                "char": "SPACE",
+                "char": "BCSP",
                 "k_type": 1
             },
             {
