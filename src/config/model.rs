@@ -10,5 +10,5 @@ pub struct Key {
     pub size: f32,
     #[serde(alias = "char")]
     pub display: String,
-    pub index: i8,
+    pub k_type: i8,
 }

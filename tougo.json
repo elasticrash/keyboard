@@ -58,6 +58,11 @@
             },
             {
                 "size": 1,
+                "char": "DEL",
+                "k_type": 1
+            },
+            {
+                "size": 1,
                 "char": "BCKSP",
                 "k_type": 1
             }
@@ -122,6 +127,11 @@
                 "size": 1,
                 "char": "'",
                 "k_type": 1
+            },
+            {
+                "size": 1,
+                "char": "ENTER",
+                "k_type": 1
             }
         ],
         [
@@ -182,69 +192,54 @@
             },
             {
                 "size": 1,
-                "char": "ENTER",
-                "k_type": 1
-            }
-        ],
-        [
-            {
-                "size": 1,
-                "char": "CTRL",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "OS",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "ALT",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "TAB",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "LW",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "SPACE",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "SPACE",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "RS",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "HOME",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "UP",
-                "k_type": 1
-            },
-            {
-                "size": 1,
-                "char": "DOWN",
+                "char": "|",
                 "k_type": 1
             },
             {
                 "size": 1,
                 "char": "SHIFT",
+                "k_type": 1
+            }
+        ],
+        [
+            {
+                "size": 2,
+                "char": "",
+                "k_type": 0
+            },
+            {
+                "size": 1,
+                "char": "FN1",
+                "k_type": 1
+            },
+            {
+                "size": 0.25,
+                "char": "",
+                "k_type": 0
+            },
+            {
+                "size": 2.75,
+                "char": "SPACE",
+                "k_type": 1
+            },
+            {
+                "size": 1,
+                "char": "ENTER",
+                "k_type": 1
+            },
+            {
+                "size": 2.75,
+                "char": "SPACE",
+                "k_type": 1
+            },
+            {
+                "size": 0.25,
+                "char": "",
+                "k_type": 0
+            },
+            {
+                "size": 1,
+                "char": "FN2",
                 "k_type": 1
             }
         ]

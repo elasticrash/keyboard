@@ -3,7 +3,6 @@ use egaku2d::glutin::event::{Event, VirtualKeyCode, WindowEvent};
 use egaku2d::glutin::event_loop::ControlFlow;
 mod config;
 use std::env;
-use std::iter::Repeat;
 
 fn main() {
     let events_loop = egaku2d::glutin::event_loop::EventLoop::new();
@@ -55,21 +54,26 @@ fn main() {
                     let mut point = 1.0;
                     let mut pos_x = 50.;
                     for y in x {
-                        rects.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size, 0.0));
-                        rects_inner.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size, 1.));
+                        if y.k_type == 1 {
+                            rects.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size, 0.0));
+                            rects_inner
+                                .add(rectangle(pos_x, pos_y, u1_size, row, point, y.size, 1.));
 
-                        add_ascii(
-                            [
-                                transform_single(pos_x + (point * u1_size) + u1_size / 3. as f32),
-                                transform_single(
-                                    pos_y + ((row as f32) * u1_size) + u1_size / 3. as f32,
-                                ),
-                            ],
-                            10.0,
-                            0.0,
-                            &y.display,
-                            &mut sprites,
-                        );
+                            add_ascii(
+                                [
+                                    transform_single(
+                                        pos_x + (point * u1_size) + u1_size / 3. as f32,
+                                    ),
+                                    transform_single(
+                                        pos_y + ((row as f32) * u1_size) + u1_size / 3. as f32,
+                                    ),
+                                ],
+                                10.0,
+                                0.0,
+                                &y.display,
+                                &mut sprites,
+                            );
+                        }
                         point += y.size;
                         pos_x += gap;
 
@@ -119,14 +123,14 @@ fn main() {
                     for y in x {
                         let switch = switch_slot(pos_x, pos_y);
                         let offset = ((y.size - 1.) * 190.) / 2.;
-                        if y.size < 2. {
+                        if y.size < 2. && y.k_type == 1 {
                             for swln_index in 0..switch.len() {
                                 lines.add(
                                     transform(switch[swln_index][0], offset),
                                     transform(switch[swln_index][1], offset),
                                 );
                             }
-                        } else if y.size == 6.25 {
+                        } else if y.size == 6.25 && y.k_type == 1 {
                             let stabilizer = stabilizer(pos_x, pos_y, 381.5);
                             for swln_index in 0..stabilizer.len() {
                                 lines.add(
@@ -134,7 +138,7 @@ fn main() {
                                     transform(stabilizer[swln_index][1], offset),
                                 );
                             }
-                        } else {
+                        } else if y.k_type == 1 {
                             let stabilizer = stabilizer(pos_x, pos_y, 0.0);
                             for swln_index in 0..stabilizer.len() {
                                 lines.add(
