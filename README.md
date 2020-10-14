@@ -5,3 +5,5 @@ How to run
 cargo run {keyboard}
 
 i.e cargo run generic60
+D: exports plate to dxf
+P: exports plate in ply (no holes)

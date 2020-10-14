@@ -1,5 +1,6 @@
 extern crate egaku2d;
 extern crate ply_rs;
+extern crate spade;
 
 use crate::exported_geometry::get_geometry;
 use dxf::entities::*;
@@ -11,13 +12,17 @@ use ply_rs::ply::{
     ScalarType,
 };
 use ply_rs::writer::Writer;
-use rtriangulate::{triangulate, TriangulationPoint};
+use spade::delaunay::FaceHandle;
+use spade::kernels::FloatKernel;
 use std::env;
 use std::io::Write;
 mod config;
 mod exported_geometry;
+use cgmath::Point2;
 use dxf::Point;
+use spade::delaunay::ConstrainedDelaunayTriangulation;
 use std::fs::File;
+pub type Cdt = ConstrainedDelaunayTriangulation<Point2<f64>, FloatKernel>;
 
 fn main() {
     let events_loop = egaku2d::glutin::event_loop::EventLoop::new();
@@ -34,12 +39,13 @@ fn main() {
     let geometry = get_geometry(&keyboard);
     let mut drawing = Drawing::default();
 
-    let mut tpoints: Vec<TriangulationPoint<f64>> = vec![];
+    let mut cdt = Cdt::new();
+
     let mut vetrices: Vec<Point> = vec![];
 
     for pl in geometry {
         for vtx in &pl.vertices {
-            tpoints.push(TriangulationPoint::new(vtx.location.x, vtx.location.y));
+            cdt.insert(Point2::new(vtx.location.x, vtx.location.y));
             vetrices.push(Point::new(vtx.location.x, vtx.location.y, 0.));
         }
 
@@ -56,8 +62,6 @@ fn main() {
                     drawing.save_file(&format!("{}.dxf", name));
                 }
                 Some(VirtualKeyCode::P) => {
-                    let t_triangles = triangulate(&tpoints).unwrap();
-
                     let mut ply = Ply::<DefaultElement>::new();
                     ply.header.encoding = Encoding::Ascii;
                     ply.header.comments.push("A beautiful comment!".to_string());
@@ -75,11 +79,11 @@ fn main() {
                         PropertyDef::new("z".to_string(), PropertyType::Scalar(ScalarType::Float));
                     point_element.properties.add(p);
                     ply.header.elements.add(point_element);
-                    for vtx in &vetrices {
+                    for tr in cdt.vertices() {
                         let mut point = DefaultElement::new();
-                        point.insert("x".to_string(), Property::Float(vtx.x as f32));
-                        point.insert("y".to_string(), Property::Float(vtx.y as f32));
-                        point.insert("z".to_string(), Property::Float(vtx.z as f32));
+                        point.insert("x".to_string(), Property::Float(tr.x as f32));
+                        point.insert("y".to_string(), Property::Float(tr.y as f32));
+                        point.insert("z".to_string(), Property::Float(0.));
                         points.push(point);
                     }
                     ply.payload.insert("vertex".to_string(), points);
@@ -91,11 +95,16 @@ fn main() {
                     );
                     face_element.properties.add(p);
                     ply.header.elements.add(face_element);
-                    for tr in t_triangles {
+                    for tr in cdt.triangles() {
                         let mut triangle = DefaultElement::new();
+                        let trngl = tr.as_triangle();
                         triangle.insert(
                             "vertex_index".to_string(),
-                            Property::ListInt(vec![tr.0 as i32, tr.1 as i32, tr.2 as i32]),
+                            Property::ListInt(vec![
+                                trngl[0].fix() as i32,
+                                trngl[1].fix() as i32,
+                                trngl[2].fix() as i32,
+                            ]),
                         );
                         triangles.push(triangle);
                     }
