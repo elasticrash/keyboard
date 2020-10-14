@@ -1,12 +1,23 @@
 extern crate egaku2d;
+extern crate ply_rs;
+
 use crate::exported_geometry::get_geometry;
 use dxf::entities::*;
 use dxf::Drawing;
 use egaku2d::glutin::event::{Event, VirtualKeyCode, WindowEvent};
 use egaku2d::glutin::event_loop::ControlFlow;
+use ply_rs::ply::{
+    Addable, DefaultElement, ElementDef, Encoding, Ply, Property, PropertyDef, PropertyType,
+    ScalarType,
+};
+use ply_rs::writer::Writer;
+use rtriangulate::{triangulate, TriangulationPoint};
 use std::env;
+use std::io::Write;
 mod config;
 mod exported_geometry;
+use dxf::Point;
+use std::fs::File;
 
 fn main() {
     let events_loop = egaku2d::glutin::event_loop::EventLoop::new();
@@ -23,7 +34,15 @@ fn main() {
     let geometry = get_geometry(&keyboard);
     let mut drawing = Drawing::default();
 
+    let mut tpoints: Vec<TriangulationPoint<f64>> = vec![];
+    let mut vetrices: Vec<Point> = vec![];
+
     for pl in geometry {
+        for vtx in &pl.vertices {
+            tpoints.push(TriangulationPoint::new(vtx.location.x, vtx.location.y));
+            vetrices.push(Point::new(vtx.location.x, vtx.location.y, 0.));
+        }
+
         drawing.entities.push(Entity::new(EntityType::Polyline(pl)));
     }
 
@@ -35,6 +54,58 @@ fn main() {
                 }
                 Some(VirtualKeyCode::D) => {
                     drawing.save_file(&format!("{}.dxf", name));
+                }
+                Some(VirtualKeyCode::P) => {
+                    let t_triangles = triangulate(&tpoints).unwrap();
+
+                    let mut ply = Ply::<DefaultElement>::new();
+                    ply.header.encoding = Encoding::Ascii;
+                    ply.header.comments.push("A beautiful comment!".to_string());
+                    // Add data
+                    let mut points = Vec::new();
+                    let mut triangles = Vec::new();
+                    let mut point_element = ElementDef::new("vertex".to_string());
+                    let p =
+                        PropertyDef::new("x".to_string(), PropertyType::Scalar(ScalarType::Float));
+                    point_element.properties.add(p);
+                    let p =
+                        PropertyDef::new("y".to_string(), PropertyType::Scalar(ScalarType::Float));
+                    point_element.properties.add(p);
+                    let p =
+                        PropertyDef::new("z".to_string(), PropertyType::Scalar(ScalarType::Float));
+                    point_element.properties.add(p);
+                    ply.header.elements.add(point_element);
+                    for vtx in &vetrices {
+                        let mut point = DefaultElement::new();
+                        point.insert("x".to_string(), Property::Float(vtx.x as f32));
+                        point.insert("y".to_string(), Property::Float(vtx.y as f32));
+                        point.insert("z".to_string(), Property::Float(vtx.z as f32));
+                        points.push(point);
+                    }
+                    ply.payload.insert("vertex".to_string(), points);
+                    ply.make_consistent().unwrap();
+                    let mut face_element = ElementDef::new("face".to_string());
+                    let p = PropertyDef::new(
+                        "vertex_index".to_string(),
+                        PropertyType::List(ScalarType::UChar, ScalarType::Int),
+                    );
+                    face_element.properties.add(p);
+                    ply.header.elements.add(face_element);
+                    for tr in t_triangles {
+                        let mut triangle = DefaultElement::new();
+                        triangle.insert(
+                            "vertex_index".to_string(),
+                            Property::ListInt(vec![tr.0 as i32, tr.1 as i32, tr.2 as i32]),
+                        );
+                        triangles.push(triangle);
+                    }
+                    ply.payload.insert("face".to_string(), triangles);
+                    ply.make_consistent().unwrap();
+                    let mut buf = Vec::<u8>::new();
+                    let w = Writer::new();
+                    let written = w.write_ply(&mut buf, &mut ply).unwrap();
+                    let mut file = File::create(format!("{}.ply", name)).unwrap();
+                    file.write_all(&buf).unwrap();
                 }
                 _ => {}
             },
@@ -64,6 +135,7 @@ fn main() {
                 let mut base_width = 0.0;
 
                 add_ascii([10., 10.], 10.0, 0.0, "D: exports dxf", &mut sprites);
+                add_ascii([10., 20.], 10.0, 0.0, "P: exports ply", &mut sprites);
 
                 for x in &keyboard.layout {
                     let mut point = 1.0;
