@@ -386,3 +386,26 @@ fn transform(n: [f32; 2], horizontal_offset: f32) -> [f32; 2] {
 fn transform_single(n: f32) -> f32 {
     n / 3.
 }
+
+fn point_in_polygon(poly: Vec<Vertex>, x: f64, y: f64) -> bool {
+    let mut c = false;
+    let l = poly.len() as i32;
+    let mut i: i32 = -1;
+    let mut j: i32 = l - 1;
+
+    while i < l {
+        if ((poly[i as usize].location.y <= y && y < poly[j as usize].location.y)
+            || (poly[j as usize].location.y <= y && y < poly[i as usize].location.y))
+            && (x
+                < (poly[j as usize].location.x - poly[i as usize].location.x)
+                    * (y - poly[i as usize].location.y)
+                    / (poly[j as usize].location.y - poly[i as usize].location.y)
+                    + poly[i as usize].location.x)
+        {
+            c = !c;
+            i += 1;
+            j = i;
+        }
+    }
+    c == true
+}
