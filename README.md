@@ -8,4 +8,4 @@ i.e cargo run generic60
 
 D: exports plate to dxf
 
-P: exports plate in ply (no holes)
+P: exports plate in ply (no height)

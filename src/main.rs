@@ -41,15 +41,24 @@ fn main() {
 
     let mut cdt = Cdt::new();
 
-    let mut vetrices: Vec<Point> = vec![];
-
-    for pl in geometry {
-        for vtx in &pl.vertices {
-            cdt.insert(Point2::new(vtx.location.x, vtx.location.y));
-            vetrices.push(Point::new(vtx.location.x, vtx.location.y, 0.));
+    for pl in &geometry {
+        for vtx in 0..pl.vertices.len() {
+            if vtx + 1 < pl.vertices.len() {
+                let a = cdt.insert(Point2::new(
+                    pl.vertices[vtx].location.x,
+                    pl.vertices[vtx].location.y,
+                ));
+                let b = cdt.insert(Point2::new(
+                    pl.vertices[vtx + 1].location.x,
+                    pl.vertices[vtx + 1].location.y,
+                ));
+                cdt.add_constraint(a, b);
+            }
         }
 
-        drawing.entities.push(Entity::new(EntityType::Polyline(pl)));
+        drawing
+            .entities
+            .push(Entity::new(EntityType::Polyline(pl.clone())));
     }
 
     events_loop.run(move |event, _, control_flow| match event {
@@ -98,15 +107,31 @@ fn main() {
                     for tr in cdt.triangles() {
                         let mut triangle = DefaultElement::new();
                         let trngl = tr.as_triangle();
-                        triangle.insert(
-                            "vertex_index".to_string(),
-                            Property::ListInt(vec![
-                                trngl[0].fix() as i32,
-                                trngl[1].fix() as i32,
-                                trngl[2].fix() as i32,
-                            ]),
-                        );
-                        triangles.push(triangle);
+                        let mut pip = false;
+
+                        let point_avg_x = (trngl[0][0] + trngl[1][0] + trngl[2][0]) / 3.;
+                        let point_avg_y = (trngl[0][1] + trngl[1][1] + trngl[2][1]) / 3.;
+
+                        for pl in &geometry {
+                            if pl.vertices.len() > 5 {
+                                if point_in_polygon(pl.vertices.to_vec(), point_avg_x, point_avg_y)
+                                {
+                                    pip = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if pip == false {
+                            triangle.insert(
+                                "vertex_index".to_string(),
+                                Property::ListInt(vec![
+                                    trngl[0].fix() as i32,
+                                    trngl[1].fix() as i32,
+                                    trngl[2].fix() as i32,
+                                ]),
+                            );
+                            triangles.push(triangle);
+                        }
                     }
                     ply.payload.insert("face".to_string(), triangles);
                     ply.make_consistent().unwrap();
@@ -202,14 +227,14 @@ fn main() {
                 );
                 lines.add(
                     transform([base_width + pos_x, 0.0 + pos_y], 0.),
-                    transform([base_width + pos_x, (row * 190) as f32 + pos_y], 0.),
+                    transform([base_width + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
                 );
                 lines.add(
-                    transform([base_width + pos_x, (row * 190) as f32 + pos_y], 0.),
-                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y], 0.),
+                    transform([base_width + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
+                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
                 );
                 lines.add(
-                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y], 0.),
+                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
                     transform([0.0 + pos_x, 0.0 + pos_y], 0.),
                 );
                 pos_y = 1500.;
@@ -393,7 +418,10 @@ fn point_in_polygon(poly: Vec<Vertex>, x: f64, y: f64) -> bool {
     let mut i: i32 = -1;
     let mut j: i32 = l - 1;
 
-    while i < l {
+    while {
+        i += 1;
+        i < l
+    } {
         if ((poly[i as usize].location.y <= y && y < poly[j as usize].location.y)
             || (poly[j as usize].location.y <= y && y < poly[i as usize].location.y))
             && (x
@@ -403,9 +431,8 @@ fn point_in_polygon(poly: Vec<Vertex>, x: f64, y: f64) -> bool {
                     + poly[i as usize].location.x)
         {
             c = !c;
-            i += 1;
-            j = i;
         }
+        j = i;
     }
     c == true
 }

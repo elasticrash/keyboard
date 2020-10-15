@@ -22,11 +22,9 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
             if key.k_type == 1 {
                 if key.size < 2. {
                     polylines.push(switch(x_position + offset, y_position));
-                }
-                if key.size == 6.25 {
+                } else if key.size == 6.25 {
                     polylines.push(stabilizer(x_position + offset, y_position, 381.5));
-                }
-                if key.size > 2. {
+                } else if key.size >= 2. {
                     polylines.push(stabilizer(x_position + offset, y_position, 0.));
                 }
             }
