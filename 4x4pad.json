@@ -1,0 +1,28 @@
+{
+    "layout": [
+        [
+            {
+                "size": 1,
+                "char": "1",
+                "k_type": 1
+            },
+            {
+                "size": 1,
+                "char": "2",
+                "k_type": 1
+            }
+        ],
+        [
+            {
+                "size": 1,
+                "char": "3",
+                "k_type": 1
+            },
+            {
+                "size": 1,
+                "char": "4",
+                "k_type": 1
+            }
+        ]
+    ]
+}

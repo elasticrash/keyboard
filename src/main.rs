@@ -2,26 +2,24 @@ extern crate egaku2d;
 extern crate ply_rs;
 extern crate spade;
 
+mod actions;
+mod config;
+mod exported_geometry;
+
+use crate::actions::ply_export::{PlyExport, PlyObject};
 use crate::exported_geometry::get_geometry;
+
 use dxf::entities::*;
 use dxf::Drawing;
 use egaku2d::glutin::event::{Event, VirtualKeyCode, WindowEvent};
 use egaku2d::glutin::event_loop::ControlFlow;
-use ply_rs::ply::{
-    Addable, DefaultElement, ElementDef, Encoding, Ply, Property, PropertyDef, PropertyType,
-    ScalarType,
-};
-use ply_rs::writer::Writer;
-use spade::delaunay::FaceHandle;
+use ply_rs::ply::{DefaultElement, Encoding, Property};
 use spade::kernels::FloatKernel;
 use std::env;
-use std::io::Write;
-mod config;
-mod exported_geometry;
+
 use cgmath::Point2;
-use dxf::Point;
 use spade::delaunay::ConstrainedDelaunayTriangulation;
-use std::fs::File;
+
 pub type Cdt = ConstrainedDelaunayTriangulation<Point2<f64>, FloatKernel>;
 
 fn main() {
@@ -68,26 +66,16 @@ fn main() {
                     *control_flow = ControlFlow::Exit;
                 }
                 Some(VirtualKeyCode::D) => {
-                    drawing.save_file(&format!("{}.dxf", name));
+                    drawing.save_file(&format!("{}.dxf", name)).unwrap();
                 }
                 Some(VirtualKeyCode::P) => {
-                    let mut ply = Ply::<DefaultElement>::new();
-                    ply.header.encoding = Encoding::Ascii;
-                    ply.header.comments.push("A beautiful comment!".to_string());
-                    // Add data
                     let mut points = Vec::new();
                     let mut triangles = Vec::new();
-                    let mut point_element = ElementDef::new("vertex".to_string());
-                    let p =
-                        PropertyDef::new("x".to_string(), PropertyType::Scalar(ScalarType::Float));
-                    point_element.properties.add(p);
-                    let p =
-                        PropertyDef::new("y".to_string(), PropertyType::Scalar(ScalarType::Float));
-                    point_element.properties.add(p);
-                    let p =
-                        PropertyDef::new("z".to_string(), PropertyType::Scalar(ScalarType::Float));
-                    point_element.properties.add(p);
-                    ply.header.elements.add(point_element);
+
+                    let mut ply = PlyObject::new();
+                    ply.add_enconding(Encoding::Ascii);
+                    ply.create_vertex_header();
+
                     for tr in cdt.vertices() {
                         let mut point = DefaultElement::new();
                         point.insert("x".to_string(), Property::Float(tr.x as f32));
@@ -95,15 +83,10 @@ fn main() {
                         point.insert("z".to_string(), Property::Float(0.));
                         points.push(point);
                     }
-                    ply.payload.insert("vertex".to_string(), points);
-                    ply.make_consistent().unwrap();
-                    let mut face_element = ElementDef::new("face".to_string());
-                    let p = PropertyDef::new(
-                        "vertex_index".to_string(),
-                        PropertyType::List(ScalarType::UChar, ScalarType::Int),
-                    );
-                    face_element.properties.add(p);
-                    ply.header.elements.add(face_element);
+
+                    ply.object.payload.insert("vertex".to_string(), points);
+                    ply.object.make_consistent().unwrap();
+
                     for tr in cdt.triangles() {
                         let mut triangle = DefaultElement::new();
                         let trngl = tr.as_triangle();
@@ -133,13 +116,10 @@ fn main() {
                             triangles.push(triangle);
                         }
                     }
-                    ply.payload.insert("face".to_string(), triangles);
-                    ply.make_consistent().unwrap();
-                    let mut buf = Vec::<u8>::new();
-                    let w = Writer::new();
-                    let written = w.write_ply(&mut buf, &mut ply).unwrap();
-                    let mut file = File::create(format!("{}.ply", name)).unwrap();
-                    file.write_all(&buf).unwrap();
+                    ply.create_triangle_header();
+                    ply.object.payload.insert("face".to_string(), triangles);
+                    ply.object.make_consistent().unwrap();
+                    ply.write_to_file(name.to_string());
                 }
                 _ => {}
             },
@@ -277,7 +257,7 @@ fn main() {
                     .send_and_uniforms(canvas)
                     .with_color([ff * row as f32, 0.6, 0.4, 1.0])
                     .draw();
-                lines = canvas.lines(1.3);
+                canvas.lines(1.3);
 
                 sprites.send_and_uniforms(canvas, &ascii_tex, 10.0).draw();
 
