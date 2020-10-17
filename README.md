@@ -8,4 +8,4 @@ i.e cargo run generic60
 
 D: exports plate to dxf
 
-P: exports plate in ply (no height)
+P: exports plate in ply (default thickness 30mm)

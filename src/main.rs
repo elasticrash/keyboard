@@ -71,7 +71,7 @@ fn main() {
                 Some(VirtualKeyCode::P) => {
                     let mut points = Vec::new();
                     let mut triangles = Vec::new();
-
+                    let mut original_triangles: Vec<TriangleIndex> = Vec::new();
                     let mut ply = PlyObject::new();
                     ply.add_enconding(Encoding::Ascii);
                     ply.create_vertex_header();
@@ -83,7 +83,15 @@ fn main() {
                         point.insert("z".to_string(), Property::Float(0.));
                         points.push(point);
                     }
+                    for tr in cdt.vertices() {
+                        let mut point = DefaultElement::new();
+                        point.insert("x".to_string(), Property::Float(tr.x as f32));
+                        point.insert("y".to_string(), Property::Float(tr.y as f32));
+                        point.insert("z".to_string(), Property::Float(30.));
+                        points.push(point);
+                    }
 
+                    let points_len = points.len();
                     ply.object.payload.insert("vertex".to_string(), points);
                     ply.object.make_consistent().unwrap();
 
@@ -114,8 +122,100 @@ fn main() {
                                 ]),
                             );
                             triangles.push(triangle);
+                            original_triangles.push(TriangleIndex {
+                                a: VertexIndex {
+                                    v: trngl[0].fix() as i32,
+                                    x: trngl[0][0] as f32,
+                                    y: trngl[0][1] as f32,
+                                    z: 0.,
+                                },
+                                b: VertexIndex {
+                                    v: trngl[1].fix() as i32,
+                                    x: trngl[1][0] as f32,
+                                    y: trngl[1][1] as f32,
+                                    z: 0.,
+                                },
+                                c: VertexIndex {
+                                    v: trngl[2].fix() as i32,
+                                    x: trngl[2][0] as f32,
+                                    y: trngl[2][1] as f32,
+                                    z: 0.,
+                                },
+                            })
                         }
                     }
+
+                    for tr in &original_triangles {
+                        let mut triangle = DefaultElement::new();
+
+                        triangle.insert(
+                            "vertex_index".to_string(),
+                            Property::ListInt(vec![
+                                tr.a.v + (points_len / 2) as i32,
+                                tr.b.v + (points_len / 2) as i32,
+                                tr.c.v + (points_len / 2) as i32,
+                            ]),
+                        );
+                        triangles.push(triangle);
+                    }
+
+                    for pl in &geometry {
+                        for vtx in 0..pl.vertices.len() {
+                            if vtx + 1 < pl.vertices.len() {
+                                let mut find_first = -1;
+
+                                for ort in original_triangles.to_vec() {
+                                    find_first = ort.search(
+                                        pl.vertices[vtx].location.x as f32,
+                                        pl.vertices[vtx].location.y as f32,
+                                    );
+
+                                    if find_first != -1 {
+                                        break;
+                                    }
+                                }
+
+                                let mut find_second = -1;
+
+                                for ort in original_triangles.to_vec() {
+                                    find_second = ort.search(
+                                        pl.vertices[vtx + 1].location.x as f32,
+                                        pl.vertices[vtx + 1].location.y as f32,
+                                    );
+                                    if find_second != -1 {
+                                        break;
+                                    }
+                                }
+
+                                if find_first != -1 && find_second != -1 {
+                                    let mut triangle_a = DefaultElement::new();
+
+                                    triangle_a.insert(
+                                        "vertex_index".to_string(),
+                                        Property::ListInt(vec![
+                                            find_first + (points_len / 2) as i32,
+                                            find_first,
+                                            find_second,
+                                        ]),
+                                    );
+                                    triangles.push(triangle_a);
+
+                                    let mut triangle_b = DefaultElement::new();
+
+                                    triangle_b.insert(
+                                        "vertex_index".to_string(),
+                                        Property::ListInt(vec![
+                                            find_first + (points_len / 2) as i32,
+                                            find_second,
+                                            find_second + (points_len / 2) as i32,
+                                        ]),
+                                    );
+                                    triangles.push(triangle_b);
+                                }
+                            }
+                        }
+                    }
+
                     ply.create_triangle_header();
                     ply.object.payload.insert("face".to_string(), triangles);
                     ply.object.make_consistent().unwrap();
@@ -415,4 +515,38 @@ fn point_in_polygon(poly: Vec<Vertex>, x: f64, y: f64) -> bool {
         j = i;
     }
     c == true
+}
+
+#[derive(Clone, Debug)]
+pub struct TriangleIndex {
+    pub a: VertexIndex,
+    pub b: VertexIndex,
+    pub c: VertexIndex,
+}
+
+#[derive(Clone, Debug)]
+pub struct VertexIndex {
+    pub v: i32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+pub trait Find {
+    fn search(self, x: f32, y: f32) -> i32;
+}
+
+impl Find for TriangleIndex {
+    fn search(self, x: f32, y: f32) -> i32 {
+        if self.a.x == x && self.a.y == y {
+            return self.a.v;
+        }
+        if self.b.x == x && self.b.y == y {
+            return self.b.v;
+        }
+        if self.c.x == x && self.c.y == y {
+            return self.c.v;
+        }
+        return -1;
+    }
 }
