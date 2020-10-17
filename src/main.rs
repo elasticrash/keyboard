@@ -295,62 +295,31 @@ fn main() {
                     rects_inner = canvas.rects();
                     rects = canvas.rects();
                 }
+                
+                let v_offset = 2000.;
+                let h_offset = 200.;
 
-                pos_y = 1400.;
-                base_width += 200.;
-                let mut pos_x = 150.;
-
-                // frame
-                lines.add(
-                    transform([0.0 + pos_x, 0.0 + pos_y], 0.),
-                    transform([base_width + pos_x, 0.0 + pos_y], 0.),
-                );
-                lines.add(
-                    transform([base_width + pos_x, 0.0 + pos_y], 0.),
-                    transform([base_width + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
-                );
-                lines.add(
-                    transform([base_width + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
-                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
-                );
-                lines.add(
-                    transform([0.0 + pos_x, (row * 190) as f32 + pos_y - 50.], 0.),
-                    transform([0.0 + pos_x, 0.0 + pos_y], 0.),
-                );
-                pos_y = 1500.;
-
-                for x in &keyboard.layout {
-                    pos_x = 250.;
-                    for y in x {
-                        let offset = (((y.size - 1.) * 190.) / 2.) as f32;
-                        if y.size < 2. && y.k_type == 1 {
-                            let switch = switch_slot(pos_x, pos_y);
-                            for swln_index in 0..switch.len() {
-                                lines.add(
-                                    transform(switch[swln_index][0], offset),
-                                    transform(switch[swln_index][1], offset),
-                                );
-                            }
-                        } else if y.size == 6.25 && y.k_type == 1 {
-                            let stabilizer = stabilizer(pos_x, pos_y, 381.5);
-                            for swln_index in 0..stabilizer.len() {
-                                lines.add(
-                                    transform(stabilizer[swln_index][0], offset),
-                                    transform(stabilizer[swln_index][1], offset),
-                                );
-                            }
-                        } else if y.k_type == 1 {
-                            let stabilizer = stabilizer(pos_x, pos_y, 0.0);
-                            for swln_index in 0..stabilizer.len() {
-                                lines.add(
-                                    transform(stabilizer[swln_index][0], offset),
-                                    transform(stabilizer[swln_index][1], offset),
-                                );
-                            }
+                for pl in &geometry {
+                    for vtx in 0..pl.vertices.len() {
+                        if vtx + 1 < pl.vertices.len() {
+                            lines.add(
+                                transform(
+                                    [{ pl.vertices[vtx].location.x as f32 }, {
+                                        -pl.vertices[vtx].location.y as f32
+                                    }],
+                                    h_offset,
+                                    v_offset,
+                                ),
+                                transform(
+                                    [{ pl.vertices[vtx + 1].location.x as f32 }, {
+                                        -pl.vertices[vtx + 1].location.y as f32
+                                    }],
+                                    h_offset,
+                                    v_offset,
+                                ),
+                            );
                         }
-                        pos_x += 190.5 + offset * 2.;
                     }
-                    pos_y += 190.5;
                 }
 
                 lines
@@ -394,98 +363,11 @@ fn rectangle(x: f32, y: f32, s: f32, r: i32, p: f32, key: f32, border: f32) -> [
     ];
 }
 
-fn switch_slot(x: f32, y: f32) -> [[[f32; 2]; 2]; 20] {
-    return [
-        [[x + 8., y], [x + 148., y]],
-        [[x + 148., y], [x + 148., y + 10.]],
-        [[x + 148., y + 10.], [x + 156., y]],
-        [[x + 156., y + 10.], [x + 156., y + 41.]],
-        [[x + 156., y + 41.], [x + 148., y + 41.]],
-        [[x + 148., y + 41.], [x + 148., y + 99.]],
-        [[x + 148., y + 99.], [x + 156., y + 99.]],
-        [[x + 156., y + 99.], [x + 156., y + 130.]],
-        [[x + 156., y + 130.], [x + 148., y + 130.]],
-        [[x + 148., y + 130.], [x + 148., y + 140.]],
-        [[x + 148., y + 140.], [x + 8., y + 140.]],
-        [[x + 8., y + 140.], [x + 8., y + 130.]],
-        [[x + 8., y + 130.], [x, y + 130.]],
-        [[x, y + 130.], [x, y + 99.]],
-        [[x, y + 99.], [x + 8., y + 99.]],
-        [[x + 8., y + 99.], [x + 8., y + 41.]],
-        [[x + 8., y + 41.], [x, y + 41.]],
-        [[x, y + 41.], [x, y + 10.]],
-        [[x, y + 10.], [x + 8., y + 10.]],
-        [[x + 8., y + 10.], [x + 8., y]],
-    ];
-}
-
-fn stabilizer(x: f32, y: f32, s: f32) -> [[[f32; 2]; 2]; 60] {
-    return [
-        [[x + 8.0, y], [x + 148.0, y]], //81
-        [[x + 148.0, y], [x + 148.0, y + 10.]],
-        [[x + 148.0, y + 10.], [x + 156.0, y + 10.]],
-        [[x + 156.0, y + 10.], [x + 156.0, y + 41.]],
-        [[x + 156.0, y + 41.], [x + 148.0, y + 41.]],
-        [[x + 148.0, y + 41.], [x + 148.0, y + 46.]],
-        [[x + 148.0, y + 46.], [x + 163.2 + s, y + 46.]],
-        [[x + 163.2 + s, y + 46.], [x + 163.2 + s, y + 14.7]],
-        [[x + 163.2 + s, y + 14.7], [x + 180.4 + s, y + 14.7]],
-        [[x + 180.4 + s, y + 14.7], [x + 180.4 + s, y + 5.5]],
-        [[x + 180.4 + s, y + 5.5], [x + 213.4 + s, y + 5.5]],
-        [[x + 213.4 + s, y + 5.5], [x + 213.4 + s, y + 14.7]],
-        [[x + 213.4 + s, y + 14.7], [x + 230.6 + s, y + 14.7]],
-        [[x + 230.6 + s, y + 14.7], [x + 230.6 + s, y + 46.]],
-        [[x + 230.6 + s, y + 46.], [x + 238.9 + s, y + 46.]],
-        [[x + 238.9 + s, y + 46.], [x + 238.9 + s, y + 74.]],
-        [[x + 238.9 + s, y + 74.], [x + 230.6 + s, y + 74.]],
-        [[x + 230.6 + s, y + 74.], [x + 230.6 + s, y + 136.7]],
-        [[x + 230.6 + s, y + 136.7], [x + 213.4 + s, y + 136.7]],
-        [[x + 213.4 + s, y + 136.7], [x + 213.4 + s, y + 146.5]],
-        [[x + 213.4 + s, y + 146.5], [x + 180.4 + s, y + 146.5]],
-        [[x + 180.4 + s, y + 146.5], [x + 180.4 + s, y + 136.7]],
-        [[x + 180.4 + s, y + 136.7], [x + 163.2 + s, y + 136.7]],
-        [[x + 163.2 + s, y + 136.7], [x + 163.2 + s, y + 92.]],
-        [[x + 163.2 + s, y + 92.], [x + 148.0, y + 92.]],
-        [[x + 148.0, y + 92.], [x + 148.0, y + 98.]],
-        [[x + 148.0, y + 98.], [x + 156.0, y + 98.]],
-        [[x + 156.0, y + 98.], [x + 156.0, y + 129.]],
-        [[x + 156.0, y + 129.], [x + 148.0, y + 129.]],
-        [[x + 148.0, y + 129.], [x + 148.0, y + 139.]],
-        [[x + 148.0, y + 139.], [x + 8., y + 139.]],
-        [[x + 8., y + 139.], [x + 8., y + 129.]],
-        [[x + 8., y + 129.], [x, y + 129.]],
-        [[x, y + 129.], [x, y + 98.]],
-        [[x, y + 98.], [x + 8., y + 98.]],
-        [[x + 8., y + 98.], [x + 8., y + 92.]],
-        [[x + 8., y + 92.], [x + (-7.2) - s, y + 92.]],
-        [[x + (-7.2) - s, y + 92.], [x + (-7.2) - s, y + 136.7]],
-        [[x + (-7.2) - s, y + 136.7], [x + (-24.4) - s, y + 136.7]],
-        [[x + (-24.4) - s, y + 136.7], [x + (-24.4) - s, y + 146.5]],
-        [[x + (-24.4) - s, y + 146.5], [x + (-57.4) - s, y + 146.5]],
-        [[x + (-57.4) - s, y + 146.5], [x + (-57.4) - s, y + 136.7]],
-        [[x + (-57.4) - s, y + 136.7], [x + (-74.6) - s, y + 136.7]],
-        [[x + (-74.6) - s, y + 136.7], [x + (-74.6) - s, y + 74.]],
-        [[x + (-74.6) - s, y + 74.], [x + (-82.9) - s, y + 74.]],
-        [[x + (-82.9) - s, y + 74.], [x + (-82.9) - s, y + 47.]],
-        [[x + (-82.9) - s, y + 47.0], [x + (-74.6) - s, y + 47.0]],
-        [[x + (-74.6) - s, y + 47.0], [x + (-74.6) - s, y + 14.7]],
-        [[x + (-74.6) - s, y + 14.7], [x + (-57.4) - s, y + 14.7]],
-        [[x + (-57.4) - s, y + 14.7], [x + (-57.4) - s, y + 5.5]],
-        [[x + (-57.4) - s, y + 5.5], [x + (-24.4) - s, y + 5.5]],
-        [[x + (-24.4) - s, y + 5.5], [x + (-24.4) - s, y + 14.7]],
-        [[x + (-24.4) - s, y + 14.7], [x + (-7.2) - s, y + 14.7]],
-        [[x + (-7.2) - s, y + 14.7], [x + (-7.2) - s, y + 46.]],
-        [[x + (-7.2) - s, y + 46.], [x + 8.0, y + 46.]],
-        [[x + 8.0, y + 46.], [x + 8.0, y + 41.]],
-        [[x + 8.0, y + 41.], [x, y + 41.]],
-        [[x, y + 41.], [x, y + 10.]],
-        [[x, y + 10.], [x + 8.0, y + 10.]],
-        [[x + 8.0, y + 10.], [x + 8.0, y]],
-    ];
-}
-
-fn transform(n: [f32; 2], horizontal_offset: f32) -> [f32; 2] {
-    [(n[0] + horizontal_offset) / 3., n[1] / 3.]
+fn transform(n: [f32; 2], horizontal_offset: f32, vertical_offset: f32) -> [f32; 2] {
+    [
+        (n[0] + horizontal_offset) / 3.,
+        (n[1] + vertical_offset) / 3.,
+    ]
 }
 
 fn transform_single(n: f32) -> f32 {
