@@ -9,3 +9,21 @@ i.e cargo run generic60
 D: exports plate to dxf
 
 P: exports plate in ply (default thickness 30mm)
+
+
+Instructions how to make your own layout.
+
+Layouts are in json format the idea is that you have
+
+an object with a single property
+
+ "layout": [] which is an array of arrays 
+
+
+each array element is a row and each object within it is a key
+
+keys have 3 properties
+
+* size in units (1 = 1U)
+* char (just for the preview)
+* k_type 1 for visible and 0 for hidden

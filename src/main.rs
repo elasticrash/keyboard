@@ -295,7 +295,6 @@ fn main() {
                     rects_inner = canvas.rects();
                     rects = canvas.rects();
                 }
-                
                 let v_offset = 2000.;
                 let h_offset = 200.;
 
