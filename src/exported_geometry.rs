@@ -38,7 +38,7 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
     }
 
     polylines.push(frame(
-        minimum_board_width as f64,
+        minimum_board_width as f64 - 25.,
         (((row_num as f32 * spacing) + ((row_num - 1) as f32 * 0.5)) - 50.) as f64,
         border,
         y_starting_point,
