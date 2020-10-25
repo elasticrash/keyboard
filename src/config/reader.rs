@@ -7,8 +7,8 @@ use std::path::Path;
  */
 pub fn read(filename: &str) -> serde_json::Result<Layout> {
     let mut buffer = String::new();
-
-    return match File::open(filename) {
+    let mut config = Ok(Layout::default());
+    match File::open(filename) {
         Ok(mut file) => {
             file.read_to_string(&mut buffer).unwrap();
             println!(
@@ -16,8 +16,9 @@ pub fn read(filename: &str) -> serde_json::Result<Layout> {
                 line!(),
                 Path::new(filename).file_name()
             );
-            serde_json::from_str(&buffer)
+            config = serde_json::from_str(&buffer);
         }
-        Err(why) => panic!(why),
+        Err(_why) => {},
     };
+    config
 }

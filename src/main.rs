@@ -94,7 +94,7 @@ fn main() {
                         let mut point = DefaultElement::new();
                         point.insert("x".to_string(), Property::Float(tr.x as f32));
                         point.insert("y".to_string(), Property::Float(tr.y as f32));
-                        point.insert("z".to_string(), Property::Float(20.));
+                        point.insert("z".to_string(), Property::Float(keyboard.options.plate_height as f32));
                         points.push(point);
                     }
 

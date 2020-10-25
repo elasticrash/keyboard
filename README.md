@@ -18,6 +18,10 @@ Layouts are in json format the idea is that you have
 an object with a single property
 
  "layout": [] which is an array of arrays 
+ "options": [] which is list of overridable values
+
+ options at the moment include
+ * plate_height: how thick the plate needs to be, defaults to 20mm
 
 
 each array element is a row and each object within it is a key
