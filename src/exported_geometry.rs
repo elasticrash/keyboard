@@ -178,3 +178,19 @@ fn stabilizer(x: f64, y: f64, s: f64) -> Polyline {
 
     polyline
 }
+
+fn screw(x: f64, y: f64, r: f64, s: i32) -> Vec<Point> {
+    let single_segment = std::f64::consts::PI * 2. / (s as f64);
+    let mut points: Vec<Point> = vec![];
+    let i = 0;
+
+    for it in i..=s {
+        points.push(Point {
+            x: x + (single_segment * it as f64).cos() * r,
+            y: y + (single_segment * it as f64).sin() * r,
+            z: 0.,
+        })
+    }
+
+    return points;
+}
