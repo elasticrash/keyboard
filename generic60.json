@@ -315,5 +315,9 @@
                 "k_type": 1
             }
         ]
-    ]
+    ],
+    "options": {
+        "plate_height": 20,
+        "screw_holes": true
+    }
 }

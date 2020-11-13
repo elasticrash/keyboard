@@ -244,7 +244,8 @@
             }
         ]
     ],
-    "options":{
-        "plate_height": 20
+    "options": {
+        "plate_height": 20,
+        "screw_holes": true
     }
 }

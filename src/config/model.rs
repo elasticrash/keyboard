@@ -18,8 +18,8 @@ pub struct Key {
 impl Default for Layout {
     fn default() -> Layout {
         Layout {
-            layout: vec!(),
-            options: ConfigurableOptions::default()
+            layout: vec![],
+            options: ConfigurableOptions::default(),
         }
     }
 }
@@ -33,12 +33,14 @@ pub struct Options {
 #[derive(Deserialize, Clone, Debug)]
 pub struct ConfigurableOptions {
     pub plate_height: i32,
+    pub screw_holes: bool,
 }
 
 impl Default for ConfigurableOptions {
     fn default() -> ConfigurableOptions {
         ConfigurableOptions {
             plate_height: 20,
+            screw_holes: false,
         }
     }
 }
