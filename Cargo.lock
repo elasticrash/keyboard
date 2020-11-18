@@ -719,6 +719,7 @@ dependencies = [
  "cgmath",
  "dxf",
  "egaku2d",
+ "orchestrator",
  "ply-rs",
  "serde",
  "serde_json",
@@ -1072,6 +1073,12 @@ name = "object"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37fd5004feb2ce328a52b0b3d01dbf4ffff72583493900ed15f22d4111c51693"
+
+[[package]]
+name = "orchestrator"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49dfac5d557c550f553fde98a5db1eb6d2c0ca4d9e55aeb30c9aee5d4b8adcad"
 
 [[package]]
 name = "ordered-float"

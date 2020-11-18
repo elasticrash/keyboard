@@ -29,6 +29,9 @@ use spade::delaunay::ConstrainedDelaunayTriangulation;
 
 pub type Cdt = ConstrainedDelaunayTriangulation<Point2<f64>, FloatKernel>;
 
+
+
+
 fn main() {
     let events_loop = egaku2d::glutin::event_loop::EventLoop::new();
     let mut sys = egaku2d::WindowedSystem::new([1200, 1000], &events_loop, "keyboard designer");
@@ -41,6 +44,7 @@ fn main() {
 
     //Draw 60 frames per second.
     let mut timer = egaku2d::RefreshTimer::new(16);
+
     let geometry = get_geometry(&keyboard);
     let mut drawing = Drawing::default();
 

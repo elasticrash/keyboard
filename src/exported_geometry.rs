@@ -2,16 +2,58 @@ use crate::config::model::Layout;
 use dxf::entities::Polyline;
 use dxf::entities::Vertex;
 use dxf::Point;
+extern crate orchestrator;
+use orchestrator::{state_function, Chain, Error, Orchestrate, Register, Registry, State};
+
+pub struct Output<'a> {
+    polylines: Vec<Polyline>,
+    config: &'a Layout,
+    passed: Passed,
+}
+
+struct Passed {
+    row_num: f32,
+    board_width: f32,
+}
 
 pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
-    let mut polylines: Vec<Polyline> = vec![];
-    let spacing = 190.;
-    let y_starting_point = 500.;
+    let fn1: fn(State<Output>) -> Result<State<Output>, Error> = state_function!(switches, Output);
+    let fn2: fn(State<Output>) -> Result<State<Output>, Error> = state_function!(screws, Output);
+    let fn3: fn(State<Output>) -> Result<State<Output>, Error> = state_function!(add_frame, Output);
+
+    let mut registry = Registry::new();
+
+    registry.register(fn1, "sw".to_string());
+    registry.register(fn2, "sc".to_string());
+    registry.register(fn3, "fr".to_string());
+
+    let polylines: Vec<Polyline> = vec![];
+
+    let result = vec!["sw", "sc", "fr"]
+        .create(&registry.di_ref)
+        .execute(State {
+            proceed: true,
+            outcome: Some(Output {
+                polylines: polylines,
+                config: &config,
+                passed: Passed {
+                    row_num: 0.,
+                    board_width: 0.,
+                },
+            }),
+            stage: Vec::<bool>::new(),
+        });
+
+    result.outcome.unwrap().polylines
+}
+
+fn switches(mut out: Output) -> Option<Output> {
+    let spacing = 190.; // should go on config
     let mut y_position = 500.;
     let mut board_width = 0.;
     let mut row_num: i32 = 0;
-    let border = 50.0;
-    for row in &config.layout {
+    let border = 50.0; // should go on config
+    for row in &out.config.layout {
         let mut x_position = border;
         row_num += 1;
         for key in row {
@@ -21,11 +63,13 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
 
             if key.k_type == 1 {
                 if key.size < 2. {
-                    polylines.push(switch(x_position + offset, y_position));
+                    out.polylines.push(switch(x_position + offset, y_position));
                 } else if key.size == 6.25 {
-                    polylines.push(stabilizer(x_position + offset, y_position, 381.5));
+                    out.polylines
+                        .push(stabilizer(x_position + offset, y_position, 381.5));
                 } else if key.size >= 2. {
-                    polylines.push(stabilizer(x_position + offset, y_position, 0.));
+                    out.polylines
+                        .push(stabilizer(x_position + offset, y_position, 0.));
                 }
             }
             x_position += 190.5 + offset * 2.;
@@ -37,40 +81,67 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
         y_position -= spacing as f64 + 0.5;
     }
 
-    let board_height = (((row_num as f32 * spacing) + ((row_num - 1) as f32 * 0.5)) - 50.) as f64;
+    out.passed.row_num = row_num as f32;
+    out.passed.board_width = board_width;
 
-    if config.options.screw_holes {
+    Some(out)
+}
+
+fn screws(mut out: Output) -> Option<Output> {
+    let spacing = 190.; // should go on config
+    let border = 50.0; // should go on config
+    let y_starting_point = 500.; // should go on config
+
+    let board_height =
+        (((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5)) - 50.) as f64;
+
+    if out.config.options.screw_holes {
         println!("drilling holes");
-        polylines.push(screw(border / 2., y_starting_point + (border / 2.), 10., 20));
-        polylines.push(screw(
+        out.polylines.push(screw(
+            border / 2.,
+            y_starting_point + (border / 2.),
+            10.,
+            20,
+        ));
+        out.polylines.push(screw(
             border / 2.,
             y_starting_point - (border / 2.) - board_height,
             10.,
             20,
         ));
-        polylines.push(screw(
-            board_width as f64 + border,
+        out.polylines.push(screw(
+            out.passed.board_width as f64 + border,
             y_starting_point + (border / 2.),
             10.,
             20,
         ));
-        polylines.push(screw(
-            board_width as f64 + border,
+        out.polylines.push(screw(
+            out.passed.board_width as f64 + border,
             y_starting_point - (border / 2.) - board_height,
             10.,
             20,
         ));
     }
 
-    polylines.push(frame(
-        board_width as f64 - 25.,
+    Some(out)
+}
+
+fn add_frame(mut out: Output) -> Option<Output> {
+    let border = 50.0; // should go on config
+    let spacing = 190.; // should go on config
+    let y_starting_point = 500.; // should go on config
+
+    let board_height =
+        (((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5)) - 50.) as f64;
+    out.polylines.push(frame(
+        out.passed.board_width as f64 - 25.,
         board_height,
         border,
         y_starting_point,
         border,
     ));
 
-    return polylines;
+    Some(out)
 }
 
 fn frame(board_width: f64, board_height: f64, x: f64, y: f64, border: f64) -> Polyline {
