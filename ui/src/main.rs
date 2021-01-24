@@ -1,35 +1,23 @@
-extern crate egaku2d;
-extern crate ply_rs;
-extern crate spade;
-
-mod actions;
-mod config;
-mod exported_geometry;
-mod primitives;
-mod transformations;
+use kpt_lib::actions::ply_io::{PlyExport, PlyObject};
+use kpt_lib::actions::dxf_io::{dxf_export, dxf_import};
+use kpt_lib::config;
+use kpt_lib::geometry::exported_geometry::{get_geometry};
+use kpt_lib::geometry::primitives;
+use kpt_lib::geometry::transformations;
 mod virtual_keyboard;
 
-use crate::actions::ply_export::{PlyExport, PlyObject};
-use crate::exported_geometry::get_geometry;
-use crate::primitives::add_ascii;
-use crate::primitives::point_in_polygon;
-use crate::primitives::{Find, TriangleIndex, VertexIndex};
-use crate::virtual_keyboard::generate_virtual_keyboard;
-
-use dxf::entities::*;
-use dxf::Drawing;
+use kpt_lib::geometry::primitives::add_ascii;
+use kpt_lib::geometry::primitives::point_in_polygon;
+use kpt_lib::geometry::primitives::{Find, TriangleIndex, VertexIndex};
+use cgmath::Point2;
 use egaku2d::glutin::event::{Event, VirtualKeyCode, WindowEvent};
 use egaku2d::glutin::event_loop::ControlFlow;
 use ply_rs::ply::{DefaultElement, Encoding, Property};
-use spade::kernels::FloatKernel;
 use std::env;
-
-use cgmath::Point2;
 use spade::delaunay::ConstrainedDelaunayTriangulation;
-
+use spade::kernels::FloatKernel;
 pub type Cdt = ConstrainedDelaunayTriangulation<Point2<f64>, FloatKernel>;
-
-
+use virtual_keyboard::generate_virtual_keyboard;
 
 
 fn main() {
@@ -39,6 +27,7 @@ fn main() {
     let file: &str = args[1].as_ref();
     let name: String = file.to_owned();
     let ascii_tex = sys.texture("ascii.png", [16, 14]).unwrap();
+    let mut cdt = Cdt::new();
 
     let keyboard = config::reader::read(format!("{}.json", file).as_str()).unwrap();
 
@@ -46,29 +35,7 @@ fn main() {
     let mut timer = egaku2d::RefreshTimer::new(16);
 
     let geometry = get_geometry(&keyboard);
-    let mut drawing = Drawing::default();
-
-    let mut cdt = Cdt::new();
-
-    for pl in &geometry {
-        for vtx in 0..pl.vertices.len() {
-            if vtx + 1 < pl.vertices.len() {
-                let a = cdt.insert(Point2::new(
-                    pl.vertices[vtx].location.x,
-                    pl.vertices[vtx].location.y,
-                ));
-                let b = cdt.insert(Point2::new(
-                    pl.vertices[vtx + 1].location.x,
-                    pl.vertices[vtx + 1].location.y,
-                ));
-                cdt.add_constraint(a, b);
-            }
-        }
-
-        drawing
-            .entities
-            .push(Entity::new(EntityType::Polyline(pl.clone())));
-    }
+    let mut drawing = dxf_import(&geometry);
 
     events_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent { event, .. } => match event {
@@ -77,7 +44,7 @@ fn main() {
                     *control_flow = ControlFlow::Exit;
                 }
                 Some(VirtualKeyCode::D) => {
-                    drawing.save_file(&format!("{}.dxf", name)).unwrap();
+                    dxf_export(&drawing, &name);
                 }
                 Some(VirtualKeyCode::P) => {
                     let mut points = Vec::new();
