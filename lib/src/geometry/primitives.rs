@@ -58,19 +58,3 @@ pub fn point_in_polygon(poly: Vec<Vertex>, x: f64, y: f64) -> bool {
     }
     c == true
 }
-
-pub fn add_ascii(
-    start: [f32; 2],
-    width: f32,
-    rotation: f32,
-    st: &str,
-    sprites: &mut egaku2d::sprite::SpriteSession,
-) {
-    let mut cc = start;
-    for (_i, a) in st.chars().enumerate() {
-        let ascii = a as u8;
-        assert!(ascii >= 32);
-        sprites.add(cc, (ascii - 32) as u16, rotation);
-        cc[0] += width;
-    }
-}
