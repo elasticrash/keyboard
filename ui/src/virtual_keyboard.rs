@@ -1,5 +1,4 @@
 use crate::config::model::Layout;
-use crate::primitives::add_ascii;
 use crate::transformations::transform;
 use crate::transformations::transform_single;
 use dxf::entities::Polyline;
@@ -101,4 +100,20 @@ fn rectangle(x: f32, y: f32, s: f32, r: i32, p: f32, key: f32, border: f32) -> [
         transform_single(y + ((r as f32) * s) as f32) + border,
         transform_single(y + ((r as f32) * s + s) as f32) - border,
     ];
+}
+
+pub fn add_ascii(
+    start: [f32; 2],
+    width: f32,
+    rotation: f32,
+    st: &str,
+    sprites: &mut egaku2d::sprite::SpriteSession,
+) {
+    let mut cc = start;
+    for (_i, a) in st.chars().enumerate() {
+        let ascii = a as u8;
+        assert!(ascii >= 32);
+        sprites.add(cc, (ascii - 32) as u16, rotation);
+        cc[0] += width;
+    }
 }

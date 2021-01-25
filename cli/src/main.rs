@@ -4,6 +4,7 @@ use std::io::{self};
 mod command;
 use command::Command;
 use kpt_lib::actions::dxf_io::{dxf_export, dxf_import};
+use kpt_lib::actions::ply_io::{PlyExport, PlyImport, PlyObject};
 use kpt_lib::geometry::exported_geometry::get_geometry;
 use std::process;
 
@@ -35,7 +36,11 @@ fn main() {
 
         match choice {
             Command::ExportDxf => dxf_export(&drawing, &name),
-            Command::ExportPly => println!("b"),
+            Command::ExportPly => {
+                let mut ply = PlyObject::new();
+                ply.import(&keyboard, &geometry);
+                ply.write_to_file(name.to_string());
+            }
             Command::Exit => process::exit(0),
             _ => eprintln!("unknown number"),
         }

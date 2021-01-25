@@ -1,17 +1,30 @@
-This project is just an idea to automate plate and sandwich case prototyping for 3d printing
+# Keyboard plate prototyping
+The idea behind this project is to automate keyboard plate prototyping for i.e. 3d printing
 
-How to run
+## How to run
+### Through CLI
+`cargo run --bin kpt_cli {keyboard}`
 
-cargo run {keyboard}
+i.e `cargo run --bin kpt_cli generic60`
 
-i.e cargo run generic60
+You will get then the following options
+
+1. Export Dxf
+2. Export Ply
+3. Exit
+
+
+### Through UI
+`cargo run --bin kpt_ui {keyboard}`
+
+i.e `cargo run --bin kpt_ui generic60`
 
 D: exports plate to dxf
 
 P: exports plate in ply (default thickness 30mm)
 
 
-Instructions how to make your own layout.
+## How to make your own layout.
 
 Layouts are in json format the idea is that you have
 
@@ -22,7 +35,6 @@ an object with a single property
 
  options at the moment include
  * plate_height: how thick the plate needs to be, defaults to 20mm
-
 
 each array element is a row and each object within it is a key
 

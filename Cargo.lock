@@ -731,7 +731,6 @@ version = "0.1.0"
 dependencies = [
  "cgmath",
  "dxf",
- "egaku2d",
  "orchestrator",
  "ply-rs",
  "serde",
@@ -743,15 +742,9 @@ dependencies = [
 name = "kpt_ui"
 version = "0.1.0"
 dependencies = [
- "cgmath",
  "dxf",
  "egaku2d",
  "kpt_lib",
- "orchestrator",
- "ply-rs",
- "serde",
- "serde_json",
- "spade",
 ]
 
 [[package]]
