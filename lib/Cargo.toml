@@ -1,9 +1,14 @@
 [package]
 name = "kpt_lib"
 version = "0.1.0"
-authors = ["stefano <s.kouroupis@gmail.com>"]
+authors = ["stefanos.kouroupis <manekato@gmail.com>"]
 edition = "2018"
-
+readme = "CRATE.md"
+description = "Keyboard plate prototyping"
+license = "MIT"
+documentation = "https://docs.rs/kpt_lib"
+repository = "https://github.com/elasticrash/keyboard"
+keywords = ["3D printing", "prototyping","keyboard"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
