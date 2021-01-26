@@ -1,3 +1,4 @@
+extern crate serde;
 use serde::Deserialize;
 
 #[serde(default)]
