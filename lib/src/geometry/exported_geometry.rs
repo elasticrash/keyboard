@@ -1,3 +1,4 @@
+use crate::config::model::DirectionOptions;
 use crate::config::model::Layout;
 use dxf::entities::Polyline;
 use dxf::entities::Vertex;
@@ -49,27 +50,45 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
 
 fn switches(mut out: Output) -> Option<Output> {
     let spacing = 190.; // should go on config
-    let mut y_position = 500.;
+    let mut y_position: f64 = 500.;
     let mut board_width = 0.;
     let mut row_num: i32 = 0;
     let border = 50.0; // should go on config
     for row in &out.config.layout {
         let mut x_position = border;
+        let mut column_number = 0;
         row_num += 1;
         for key in row {
             // this is used for keys bigger than 1U to be placed correctly
             // for 1U keys this results to 0
             let offset: f64 = (((key.size - 1.) * spacing) / 2.) as f64;
 
+            let vertical_offset = &out
+                .config
+                .options
+                .column
+                .iter()
+                .find(|&x| x.index == column_number)
+                .unwrap_or(&DirectionOptions {
+                    index: 0,
+                    offset: 0.,
+                });
+
+            let y_position_with_offset = y_position - (vertical_offset.offset * 190.5);
+
             if key.k_type == 1 {
                 if key.size < 2. {
-                    out.polylines.push(switch(x_position + offset, y_position));
-                } else if key.size == 6.25 {
                     out.polylines
-                        .push(stabilizer(x_position + offset, y_position, 381.5));
+                        .push(switch(x_position + offset, y_position_with_offset));
+                } else if key.size == 6.25 {
+                    out.polylines.push(stabilizer(
+                        x_position + offset,
+                        y_position_with_offset,
+                        381.5,
+                    ));
                 } else if key.size >= 2. {
                     out.polylines
-                        .push(stabilizer(x_position + offset, y_position, 0.));
+                        .push(stabilizer(x_position + offset, y_position_with_offset, 0.));
                 }
             }
             x_position += 190.5 + offset * 2.;
@@ -77,6 +96,7 @@ fn switches(mut out: Output) -> Option<Output> {
             if row_num == 1 {
                 board_width = board_width + spacing * key.size;
             }
+            column_number += 1;
         }
         y_position -= spacing as f64 + 0.5;
     }
@@ -91,12 +111,21 @@ fn screws(mut out: Output) -> Option<Output> {
     let spacing = 190.; // should go on config
     let border = 50.0; // should go on config
     let y_starting_point = 500.; // should go on config
-
-    let board_height =
-        (((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5)) - 50.) as f64;
+    let max_vertical_offset = &out
+    .config
+    .options
+    .column
+    .iter()
+    .max_by_key(|&x| x.index)
+    .unwrap_or(&DirectionOptions {
+        index: 0,
+        offset: 0.,
+    });
+    let board_height = ((((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5))
+        - 50.)
+        + (max_vertical_offset.offset as f32 * spacing)) as f64;
 
     if out.config.options.screw_holes {
-        println!("drilling holes");
         out.polylines.push(screw(
             border / 2.,
             y_starting_point + (border / 2.),
@@ -130,9 +159,22 @@ fn add_frame(mut out: Output) -> Option<Output> {
     let border = 50.0; // should go on config
     let spacing = 190.; // should go on config
     let y_starting_point = 500.; // should go on config
+    let max_vertical_offset = &out
+        .config
+        .options
+        .column
+        .iter()
+        .max_by_key(|&x| x.index)
+        .unwrap_or(&DirectionOptions {
+            index: 0,
+            offset: 0.,
+        });
 
-    let board_height =
-        (((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5)) - 50.) as f64;
+    println!("{}, ", max_vertical_offset.offset);
+
+    let board_height = ((((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5))
+        - 50.)
+        + (max_vertical_offset.offset as f32 * spacing)) as f64;
     out.polylines.push(frame(
         out.passed.board_width as f64 - 25.,
         board_height,
