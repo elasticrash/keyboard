@@ -35,6 +35,8 @@ pub struct Options {
 pub struct ConfigurableOptions {
     pub plate_height: i32,
     pub screw_holes: bool,
+    pub row: Vec<DirectionOptions>,
+    pub column: Vec<DirectionOptions>
 }
 
 impl Default for ConfigurableOptions {
@@ -42,6 +44,14 @@ impl Default for ConfigurableOptions {
         ConfigurableOptions {
             plate_height: 20,
             screw_holes: false,
+            row: vec![],
+            column: vec![],
         }
     }
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct DirectionOptions {
+    pub index: i32,
+    pub offset: f64,
 }

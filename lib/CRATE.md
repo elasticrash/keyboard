@@ -5,28 +5,54 @@
 * configuration examples 
     * [1. 60%](http://github.com/elasticrash/keyboard/blob/master/generic60.json)
     * [2. Ortho](https://github.com/elasticrash/keyboard/blob/master/ortho40.json)
-    * [3. my keyboard design](https://github.com/elasticrash/keyboard/blob/master/tougo.json)
-
+    * [3. example design](https://github.com/elasticrash/keyboard/blob/master/tougo.json)
+    * [4. example design/column stagger](https://github.com/elasticrash/keyboard/blob/master/tougo_cs.json)
 
 ## How to make your own layout
 
-Layouts are in json format the idea is that you have
+Layouts are in json format 
 
-an object with a single property
+basic structure is as follow
 
- "layout": [] which is an array of arrays 
- "options": [] which is list of overridable values
-
- options at the moment include
- * plate_height: how thick the plate needs to be, defaults to 20mm
-
-each array element is a row and each object within it is a key
-
-keys have 3 properties
-
-* size in units (1 = 1U)
-* char (just for the preview)
-* k_type 1 for visible and 0 for hidden
+```json
+{
+    "layout": [
+        // rows
+        [
+            //keys
+             {
+                "size": float //size in units
+                "char": string //optional for UI module
+                "k_type": bit // 0: hidden (spacer) 1: visible (key)
+            },
+        ],
+        [
+        ],
+        [
+        ],
+        [
+        ]
+    ],
+    "options": {
+        "plate_height": f32 //how thick the plate needs to be, defaults to 20mm
+        "screw_holes": bool // adds m2 sized holes at the edge of the plate
+                            // not that useful at the moment, needs to be
+                            // moved more in to allow heat inserts to be 
+                            // used
+        "row": [ // options for the rows (not supported yet)
+             
+        ],
+        "column": [ //options for the colums
+            {
+                "index": integer // column index (zero based)
+                "offset": float // vertical offset (used to achieve vertical stagger)
+                                // column needs to be the same key size
+                                // rows need to have the same amount keys/spacers
+            },
+        ]
+    }
+}
+```
 
 ## Supported exports
 

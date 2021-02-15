@@ -1,3 +1,4 @@
+use kpt_lib::config::model::DirectionOptions;
 use crate::config::model::Layout;
 use crate::transformations::transform;
 use crate::transformations::transform_single;
@@ -25,15 +26,29 @@ pub fn generate_virtual_keyboard(
     for x in &keyboard.layout {
         let mut point = 1.0;
         let mut pos_x = 50.;
+        let mut column_number = 0;
         for y in x {
+
+            let vertical_offset = &keyboard
+            .options
+            .column
+            .iter()
+            .find(|&x| x.index == column_number)
+            .unwrap_or(&DirectionOptions {
+                index: 0,
+                offset: 0.,
+            });
+
+            let pos_y_with_offset = (pos_y + (vertical_offset.offset * 190.5)) as f32;
+
             if y.k_type == 1 {
-                rects.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size, 0.0));
-                rects_inner.add(rectangle(pos_x, pos_y, u1_size, row, point, y.size, 1.));
+                rects.add(rectangle(pos_x, pos_y_with_offset, u1_size, row, point, y.size, 0.0));
+                rects_inner.add(rectangle(pos_x, pos_y_with_offset, u1_size, row, point, y.size, 1.));
 
                 add_ascii(
                     [
                         transform_single(pos_x + (point * u1_size) + u1_size / 3. as f32),
-                        transform_single(pos_y + ((row as f32) * u1_size) + u1_size / 3. as f32),
+                        transform_single(pos_y_with_offset + ((row as f32) * u1_size) + u1_size / 3. as f32),
                     ],
                     10.0,
                     0.0,
@@ -47,6 +62,7 @@ pub fn generate_virtual_keyboard(
             if row == 1 {
                 base_width = base_width + u1_size * y.size;
             }
+            column_number += 1;
         }
         pos_y += 0.5;
         row += 1;
