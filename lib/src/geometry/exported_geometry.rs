@@ -3,6 +3,7 @@ use crate::config::model::Layout;
 use dxf::entities::Polyline;
 use dxf::entities::Vertex;
 use dxf::Point;
+use ordered_float::OrderedFloat;
 extern crate orchestrator;
 use orchestrator::{state_function, Chain, Error, Orchestrate, Register, Registry, State};
 
@@ -50,7 +51,7 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
 
 fn switches(mut out: Output) -> Option<Output> {
     let spacing = 190.; // should go on config
-    let mut y_position: f64 = 500.;
+    let mut y_starting_point: f64 = 500.;
     let mut board_width = 0.;
     let mut row_num: i32 = 0;
     let border = 50.0; // should go on config
@@ -59,10 +60,9 @@ fn switches(mut out: Output) -> Option<Output> {
         let mut column_number = 0;
         row_num += 1;
         for key in row {
-            // this is used for keys bigger than 1U to be placed correctly
-            // for 1U keys this results to 0
+            // this is used to calculate how much offset a button would need
+            // relatively to its 1U position
             let offset: f64 = (((key.size - 1.) * spacing) / 2.) as f64;
-
             let vertical_offset = &out
                 .config
                 .options
@@ -74,21 +74,22 @@ fn switches(mut out: Output) -> Option<Output> {
                     offset: 0.,
                 });
 
-            let y_position_with_offset = y_position - (vertical_offset.offset * 190.5);
+            let key_position_x = x_position + offset;
+            let key_position_y = y_starting_point - (vertical_offset.offset * 190.5);
 
             if key.k_type == 1 {
                 if key.size < 2. {
                     out.polylines
-                        .push(switch(x_position + offset, y_position_with_offset));
+                        .push(switch(key_position_x, key_position_y));
                 } else if key.size == 6.25 {
                     out.polylines.push(stabilizer(
-                        x_position + offset,
-                        y_position_with_offset,
+                        key_position_x,
+                        key_position_y,
                         381.5,
                     ));
                 } else if key.size >= 2. {
                     out.polylines
-                        .push(stabilizer(x_position + offset, y_position_with_offset, 0.));
+                        .push(stabilizer(key_position_x, key_position_y, 0.));
                 }
             }
             x_position += 190.5 + offset * 2.;
@@ -98,7 +99,7 @@ fn switches(mut out: Output) -> Option<Output> {
             }
             column_number += 1;
         }
-        y_position -= spacing as f64 + 0.5;
+        y_starting_point -= spacing as f64 + 0.5;
     }
 
     out.passed.row_num = row_num as f32;
@@ -112,15 +113,15 @@ fn screws(mut out: Output) -> Option<Output> {
     let border = 50.0; // should go on config
     let y_starting_point = 500.; // should go on config
     let max_vertical_offset = &out
-    .config
-    .options
-    .column
-    .iter()
-    .max_by_key(|&x| x.index)
-    .unwrap_or(&DirectionOptions {
-        index: 0,
-        offset: 0.,
-    });
+        .config
+        .options
+        .column
+        .iter()
+        .max_by_key(|&x| x.index)
+        .unwrap_or(&DirectionOptions {
+            index: 0,
+            offset: 0.,
+        });
     let board_height = ((((out.passed.row_num * spacing) + ((out.passed.row_num - 1.) * 0.5))
         - 50.)
         + (max_vertical_offset.offset as f32 * spacing)) as f64;
@@ -319,6 +320,48 @@ fn screw(x: f64, y: f64, r: f64, s: i32) -> Polyline {
             0.,
         )));
     }
+
+    polyline
+}
+
+#[warn(dead_code)]
+fn bounding_box(geometry: Polyline) -> Polyline {
+    let mut polyline = Polyline::default();
+
+    let min_x = geometry
+        .vertices
+        .iter()
+        .max_by_key(|p| OrderedFloat(p.location.x))
+        .unwrap()
+        .location
+        .x;
+    let min_y = geometry
+        .vertices
+        .iter()
+        .max_by_key(|p| OrderedFloat(p.location.y))
+        .unwrap()
+        .location
+        .y;
+    let max_x = geometry
+        .vertices
+        .iter()
+        .min_by_key(|p| OrderedFloat(p.location.x))
+        .unwrap()
+        .location
+        .x;
+    let max_y = geometry
+        .vertices
+        .iter()
+        .min_by_key(|p| OrderedFloat(p.location.y))
+        .unwrap()
+        .location
+        .y;
+
+    polyline.vertices = [
+        Vertex::new(Point::new(min_x, min_y, 0.)),
+        Vertex::new(Point::new(max_x, max_y, 0.)),
+    ]
+    .to_vec();
 
     polyline
 }
