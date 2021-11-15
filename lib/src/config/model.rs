@@ -1,4 +1,5 @@
 extern crate serde;
+
 use serde::Deserialize;
 
 #[serde(default)]
@@ -6,6 +7,7 @@ use serde::Deserialize;
 pub struct Layout {
     pub layout: Vec<Vec<Key>>,
     pub options: ConfigurableOptions,
+    pub metadata: Metadata,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -21,6 +23,7 @@ impl Default for Layout {
         Layout {
             layout: vec![],
             options: ConfigurableOptions::default(),
+            metadata: Metadata::default()
         }
     }
 }
@@ -46,6 +49,20 @@ impl Default for ConfigurableOptions {
             screw_holes: false,
             row: vec![],
             column: vec![],
+        }
+    }
+}
+
+#[serde(default)]
+#[derive(Deserialize, Clone, Debug)]
+pub struct Metadata {
+    pub spacing:f32
+}
+
+impl Default for Metadata {
+    fn default() -> Metadata {
+        Metadata {
+            spacing: 42.,
         }
     }
 }

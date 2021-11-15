@@ -325,5 +325,8 @@
                 "offset": 0.5
             }
         ]
+    },
+    "metadata": {
+        "spacing": 42
     }
 }

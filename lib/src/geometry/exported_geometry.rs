@@ -50,7 +50,8 @@ pub fn get_geometry(config: &Layout) -> Vec<Polyline> {
 }
 
 fn switches(mut out: Output) -> Option<Output> {
-    let spacing = 190.; // should go on config
+    let switch_size_x: f32 = 148.;
+    let spacing = switch_size_x + &out.config.metadata.spacing;
     let mut y_starting_point: f64 = 500.;
     let mut board_width = 0.;
     let mut row_num: i32 = 0;
@@ -75,24 +76,21 @@ fn switches(mut out: Output) -> Option<Output> {
                 });
 
             let key_position_x = x_position + offset;
-            let key_position_y = y_starting_point - (vertical_offset.offset * 190.5);
+            let key_position_y =
+                y_starting_point - (vertical_offset.offset * (spacing as f64 + 0.5));
 
             if key.k_type == 1 {
                 if key.size < 2. {
-                    out.polylines
-                        .push(switch(key_position_x, key_position_y));
+                    out.polylines.push(switch(key_position_x, key_position_y));
                 } else if key.size == 6.25 {
-                    out.polylines.push(stabilizer(
-                        key_position_x,
-                        key_position_y,
-                        381.5,
-                    ));
+                    out.polylines
+                        .push(stabilizer(key_position_x, key_position_y, 381.5));
                 } else if key.size >= 2. {
                     out.polylines
                         .push(stabilizer(key_position_x, key_position_y, 0.));
                 }
             }
-            x_position += 190.5 + offset * 2.;
+            x_position += spacing as f64 + 0.5 + offset * 2.;
 
             if row_num == 1 {
                 board_width = board_width + spacing * key.size;
@@ -109,7 +107,8 @@ fn switches(mut out: Output) -> Option<Output> {
 }
 
 fn screws(mut out: Output) -> Option<Output> {
-    let spacing = 190.; // should go on config
+    let switch_size_x: f32 = 148.;
+    let spacing = switch_size_x + &out.config.metadata.spacing;
     let border = 50.0; // should go on config
     let y_starting_point = 500.; // should go on config
     let max_vertical_offset = &out
@@ -158,7 +157,8 @@ fn screws(mut out: Output) -> Option<Output> {
 
 fn add_frame(mut out: Output) -> Option<Output> {
     let border = 50.0; // should go on config
-    let spacing = 190.; // should go on config
+    let switch_size_x: f32 = 148.;
+    let spacing = switch_size_x + &out.config.metadata.spacing;
     let y_starting_point = 500.; // should go on config
     let max_vertical_offset = &out
         .config
